@@ -15,3 +15,6 @@
 
     - npm install react-native-image-picker
     - react-native link react-native-image-picker
+
+    - npm install react-native-file-viewer
+    - react-native link react-native-file-viewer
