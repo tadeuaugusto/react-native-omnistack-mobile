@@ -6,8 +6,13 @@ import styles from './styles';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-community/async-storage';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import ImagePicker from 'react-native-image-picker';
+
 import { distanceInWords } from 'date-fns';
 import pt from 'date-fns/locale/pt';
+
+import RNFS from 'react-native-fs';
+import FileViewer from 'react-native-file-viewer';
 
 export default class Box extends Component {
 
@@ -24,9 +29,48 @@ export default class Box extends Component {
     this.setState({ box: response.data });
   }
 
+  handleUpload = () => {
+    ImagePicker.launchImageLibrary({}, async upload => {
+      if (upload.error) {
+        console.log('ImagePicker error');
+      } else if (upload.didCancel) {
+        ('Cancelled by user');
+      } else {
+        const data = new FormData();
+
+        const [prefix, suffix] = upload.fileName.split('.');
+        const ext = suffix.toLowerCase() === 'heic' ? 'jpg' : suffix;
+
+        data.append('file', {
+          uri: upload.uri,
+          type: upload.type,
+          name: `${prefix}.${ext}`
+        })
+
+        api.post(`boxes/${thist.state.box._id}/files`, data);
+      }
+    });
+  }
+
+  openFile = (file) => {
+    try {
+      const filePath = `${RNFS.DocumentDirectoryPath}/${file.title}`;
+
+      // download the file
+      await RNFS.downloadFile({
+        fromUrl: file.url,
+        toFile: filePath
+      });
+
+      await FileViewer.open(filePath);
+    } catch (err) {
+      console.log('File is not supported')
+    }
+  }
+
   renderItem = ({ item }) => (
     <TouchableOpacity
-      onPress={() => {}}
+      onPress={() => this.openFile(item)}
       style={ styles.file }
     >
       <View style={ styles.fileInfo }>
@@ -54,6 +98,10 @@ export default class Box extends Component {
           renderItem={ this.renderItem }
 
           />
+
+          <TouchableOpacity style={ styles.fab } onPress={ this.handleUpload }>
+            <Icon name='cloud-upload' size={24} color='#FFF' />
+          </TouchableOpacity>
       </View>
     );
   }

@@ -18,3 +18,7 @@
 
     - npm install react-native-file-viewer
     - react-native link react-native-file-viewer
+
+    - npm install react-native-iphone-x-helper
+    
+    - npm install date-fns
